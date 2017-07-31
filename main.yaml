@@ -1,0 +1,87 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  This template illuastrates how to use AWS Batch to pull data from a given S3
+  bucket process it usint Logstash and publish it on ElasticSearch for migrating
+  teradata.
+
+Parameters:
+  TemplateBucket:
+    Description: 'Bucket where the templates and nested were uploaded'
+    Type: String
+  Tag:
+    Description: Name used to identified  values.
+    Type: String
+    Default: BLOG
+    MaxLength: 16
+    MinLength: 4
+  CidrVPC:
+    Description: 'Cidr for the VPC'
+    Type: String
+    Default: 10.0.0.0/16
+  CidrPublicSubnetA:
+    Description: 'Cidr for Public Subnet A'
+    Type: String
+    Default: 10.0.0.0/20
+  CidrPrivateSubnetA:
+    Description: 'Cidr for Private Subnet A'
+    Type: String
+    Default: 10.0.48.0/20
+  CidrPublicSubnetB:
+    Description: 'Cidr for Public Subnet B'
+    Type: String
+    Default: 10.0.16.0/20
+  CidrPrivateSubnetB:
+    Description: 'Cidr for Private Subnet B'
+    Type: String
+    Default: 10.0.64.0/20
+  CidrPublicSubnetC:
+    Description: 'Cidr for Public Subnet C'
+    Type: String
+    Default: 10.0.32.0/20
+  CidrPrivateSubnetC:
+    Description: 'Cidr for Private Subnet C'
+    Type: String
+    Default: 10.0.80.0/20
+  EnableIPv6:
+    Description: 'Enable IPv6 on the  VPC'
+    Type: String
+    Default: No
+    AllowedValues:
+      - No
+      - Yes
+Resources:
+  VPC:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Join: [ '', [ 'https://s3.amazonaws.com/',!Ref TemplateBucket,'/vpc.yaml' ] ]
+      Parameters:
+        Tag: !Ref Tag
+  S3:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Join: [ '', [ 'https://s3.amazonaws.com/',!Ref TemplateBucket,'/s3.yaml' ] ]
+      Parameters:
+        Tag: !Ref Tag
+  ECR:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Join: [ '', [ 'https://s3.amazonaws.com/',!Ref TemplateBucket,'/ecr.yaml' ] ]
+      Parameters:
+        Tag: !Ref Tag
+  ElasticSearch:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Join: [ '', [ 'https://s3.amazonaws.com/',!Ref TemplateBucket,'/elasticsearch.yaml' ] ]
+      Parameters:
+        Tag: !Ref Tag
+  DynamoDBTable:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL:
+        Fn::Join: [ '', [ 'https://s3.amazonaws.com/',!Ref TemplateBucket,'/dynamodb.yaml' ] ]
+      Parameters:
+        Tag: !Ref Tag

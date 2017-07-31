@@ -1,0 +1,51 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Blog Post - Hidratating ElasticSearch and Kibana using AWS Batch and Logstash.
+
+Parameters:
+  Tag:
+    Description: Name used to identified  values.
+    Type: String
+    Default: BLOG
+    MaxLength: 16
+    MinLength: 4
+
+Resources:
+  ElasticSearch:
+    Type: "AWS::Elasticsearch::Domain"
+    Properties:
+      DomainName: "blog-elasticsearch"
+      ElasticsearchClusterConfig:
+        DedicatedMasterEnabled: "true"
+        InstanceCount: "2"
+        ZoneAwarenessEnabled: "true"
+        InstanceType: "m3.medium.elasticsearch"
+        DedicatedMasterType: "m3.medium.elasticsearch"
+        DedicatedMasterCount: "3"
+      EBSOptions:
+        EBSEnabled: true
+        Iops: 0
+        VolumeSize: 30
+        VolumeType: "gp2"
+      SnapshotOptions:
+        AutomatedSnapshotStartHour: "0"
+      AccessPolicies:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              AWS: "*"
+            Action: "es:*"
+            Resource: "*"
+      AdvancedOptions:
+        rest.action.multi.allow_explicit_index: "true"
+      Tags:
+      - Key: Name
+        Value: !Sub '${Tag}'
+
+Outputs:
+  ElasticSearch:
+    Description: ElasticSearch
+    Value: !GetAtt ElasticSearch.DomainEndpoint
+    Export:
+      Name: !Sub '${Tag}-ElasticSearch'
